@@ -1,134 +1,278 @@
-# Codersquare
+# CoderSquare: Developer Community Platform
 
-Codersquare is a social web app for sharing learning resources in a hackernews-style experience. It allows users to post links to articles, videos, channels, or other public resources on the web, and other users to vote and comment on those resources.
+[![TypeScript](https://img.shields.io/badge/typescript-5+-blue.svg)](https://typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/runtime-bun-orange.svg)](https://bun.sh/)
+[![Express](https://img.shields.io/badge/express-4.17+-green.svg)](https://expressjs.com/)
+[![SQLite](https://img.shields.io/badge/database-sqlite3-blue.svg)](https://sqlite.org/)
+[![JWT](https://img.shields.io/badge/auth-JWT-red.svg)](https://jwt.io/)
+[![License](https://img.shields.io/badge/license-ISC-green.svg)](LICENSE)
 
-## Table of Contents
+> **Developer Community Platform** — Full-stack platform for developers to share posts, comment, like, and interact. Built with TypeScript, Express, SQLite, and shared types.
 
-- [Codersquare](#codersquare)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [Running the Project](#running-the-project)
-  - [API Endpoints](#api-endpoints)
-    - [Auth](#auth)
-    - [Posts](#posts)
-    - [Likes](#likes)
-    - [Comments](#comments)
-  - [Environment Variables](#environment-variables)
-  - [Database Schema](#database-schema)
-    - [Users](#users)
-    - [Posts](#posts-1)
-    - [Likes](#likes-1)
-    - [Comments](#comments-1)
-  - [License](#license)
+---
 
-## Installation
+## 🎯 Overview
 
-To install dependencies, run:
+**CoderSquare** — A developer community platform where developers can create posts, comment, like, and interact. Built as a full-stack application with shared types between frontend and backend.
+
+---
+
+## 🏗️ Architecture
+
+```
+coderSquare/
+├── server/                    # Backend API (Bun + Express + TypeScript)
+│   ├── src/
+│   │   ├── server.ts          # Express app entry point
+│   │   ├── middleware/
+│   │   │   ├── authMiddleware.ts      # JWT authentication
+│   │   │   ├── loggerMiddleware.ts    # Request logging (Pino)
+│   │   │   └── errormiddleware.ts     # Error handling
+│   │   ├── handlers/
+│   │   │   ├── AuthHandles.ts         # Auth: register, login, me
+│   │   │   └── postHandlers.ts        # Posts: CRUD, likes, comments
+│   │   ├── datastore/
+│   │   │   ├── dao/                   # Data Access Objects
+│   │   │   │   ├── userDao.ts
+│   │   │   │   ├── postDao.ts
+│   │   │   │   ├── commentDao.ts
+│   │   │   │   └── likeDao.ts
+│   │   │   ├── sql/                   # SQLite queries
+│   │   │   ├── memorydb/              # In-memory fallback
+│   │   │   └── index.ts               # Datastore factory
+│   │   └── shared/                    # Shared types (linked)
+│   ├── nodemon.json         # Watch config (server + shared)
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── README.md
+├── shared/                  # Shared TypeScript types (git submodule / symlink)
+│   ├── index.ts             # Main exports
+│   ├── src/
+│   │   ├── errors.ts        # Custom error classes
+│   │   ├── api.ts           # API client types
+│   │   ├── endpoints.ts     # Endpoint definitions
+│   │   └── types.ts         # Shared type definitions
+│   └── package.json
+├── docs/
+│   ├── PRD.md               # Product Requirements Document
+│   └── ERD.md               # Entity Relationship Diagram
+└── README.md
+```
+
+---
+
+## 🛠 Tech Stack
+
+| Category | Technologies |
+|----------|--------------|
+| **Runtime** | Bun (primary) / Node.js 18+ |
+| **Language** | TypeScript 5+ |
+| **Framework** | Express 4.17+ |
+| **Database** | SQLite 3 (sqlite3) / SQLite (sqlite) |
+| **ORM/Query** | Raw SQL with `sqlite3` / `sqlite` driver |
+| **Auth** | JWT (jsonwebtoken), bcrypt (planned) |
+| **Validation** | Manual / Zod (planned) |
+| **Logging** | Pino + pino-pretty |
+| **Dev Tools** | Nodemon, TypeScript, Jest, Supertest |
+| **Shared Types** | TypeScript project references / symlink |
+
+---
+
+## 🗄️ Database Schema (ERD)
+
+### Users
+```sql
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  username TEXT UNIQUE NOT NULL,
+  bio TEXT,
+  avatar_url TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Posts
+```sql
+CREATE TABLE posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Comments
+```sql
+CREATE TABLE comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL REFERENCES posts(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  content TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Likes
+```sql
+CREATE TABLE likes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL REFERENCES posts(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(post_id, user_id)
+);
+```
+
+---
+
+## 🛠 Tech Stack
+
+| Category | Technologies |
+|----------|--------------|
+| **Runtime** | Bun (primary) / Node.js 18+ |
+| **Language** | TypeScript 5+ |
+| **Framework** | Express 4.17+ |
+| **Database** | SQLite 3 (sqlite3) |
+| **Auth** | JWT (jsonwebtoken) |
+| **Logging** | Pino + pino-pretty |
+| **Validation** | Manual (Zod planned) |
+| **Testing** | Jest 29 + Supertest + ts-jest |
+| **Dev Tools** | Nodemon, TypeScript 4.8+, ts-jest |
+
+---
+
+## 🚀 Quick Start
 
 ```bash
+git clone https://github.com/oovaa/coderSquare.git
+cd coderSquare
+
+# Backend
+cd server
+bun install  # or npm install
+bun run start:dev    # Development with nodemon
+# or
+bun run start:prod   # Production
+
+# Shared types (linked)
+cd ../shared
 bun install
 ```
 
-## Running the Project
+---
 
-To start the development server, run:
-
-```bash
-bun ./server/server.ts
-```
-
-To start the server with `nodemon` for automatic restarts on file changes, run:
-
-```bash
-bun start
-```
-
-To start the server in production mode, run:
-
-```bash
-bun  start:prod
-```
-
-## API Endpoints
+## 📡 API Endpoints
 
 ### Auth
-
-- `POST /signup` - Sign up a new user
-- `POST /signin` - Sign in an existing user
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/me` | Get current user |
 
 ### Posts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/posts` | Create post |
+| GET | `/api/posts` | List posts (paginated) |
+| GET | `/api/posts/:id` | Get post by ID |
+| PUT | `/api/posts/:id` | Update post |
+| DELETE | `/api/posts/:id` | Delete post |
 
-- `GET /posts` - List all posts
-- `POST /posts` - Create a new post
+### Interactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/posts/:id/like` | Like/unlike post |
+| POST | `/api/posts/:id/comments` | Add comment |
+| GET | `/api/posts/:id/comments` | Get comments |
 
-### Likes
+---
 
-- `POST /likes/new` - Like a post
+## 🗂️ Shared Types (Type Safety)
 
-### Comments
+```typescript
+// shared/src/types.ts
+export interface User {
+  id: number
+  email: string
+  username: string
+  bio?: string
+  avatar_url?: string
+  created_at: string
+}
 
-- `POST /comments/new` - Add a new comment
-- `GET /comments/list` - List comments for a post
-- `DELETE /comments/:id` - Delete a comment
+export interface Post {
+  id: number
+  user_id: number
+  title: string
+  content: string
+  created_at: string
+  updated_at: string
+  author?: User
+  likes_count: number
+  comments_count: number
+  is_liked: boolean
+}
 
-## Environment Variables
-
-The following environment variables are required to run the project:
-
-- `PORT` - The port on which the server will run (default: 4000)
-- `JWT_SECRET` - Secret key for signing JWT tokens
-- `PASS_SALT` - Salt for hashing passwords
-
-Create a `.env` file in the root directory and add the required variables:
-
-```env
-PORT=4000
-JWT_SECRET=your_jwt_secret
-PASS_SALT=your_password_salt
+export interface Comment {
+  id: number
+  post_id: number
+  user_id: number
+  content: string
+  created_at: string
+  author?: User
+}
 ```
 
-## Database Schema
+---
 
-The project uses SQLite for the database. The schema is defined as follows:
+## 🛠 Development
 
-### Users
+```bash
+git clone https://github.com/oovaa/coderSquare.git
+cd coderSquare
 
-| Column    | Type   |
-|-----------|--------|
-| ID        | STRING |
-| FirstName | STRING |
-| LastName  | STRING |
-| Username  | STRING |
-| Email     | STRING |
-| Password  | STRING |
+# Backend
+cd server
+bun install
+bun run start:dev
 
-### Posts
+# Run tests
+bun run test
+bun run test:watch
+```
 
-| Column   | Type   |
-|----------|--------|
-| ID       | STRING |
-| Title    | STRING |
-| URL      | STRING |
-| UserID   | STRING |
-| PostedAt | INTEGER|
+---
 
-### Likes
+## 📋 Development Scripts
 
-| Column | Type   |
-|--------|--------|
-| UserID | STRING |
-| PostID | STRING |
+```json
+// server/package.json
+{
+  "scripts": {
+    "build": "bnu i",
+    "start": "nodemon server.ts",
+    "start:prod": "bun server.ts",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  }
+}
+```
 
-### Comments
+---
 
-| Column   | Type   |
-|----------|--------|
-| ID       | STRING |
-| UserID   | STRING |
-| PostID   | STRING |
-| Comment  | STRING |
-| PostedAt | INTEGER|
+## 📄 License
 
-## License
+ISC License - see [LICENSE](LICENSE) for details.
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+---
+
+## 👤 Author
+
+**Omar Abdulrahim**  
+GitHub: [@oovaa](https://github.com/oovaa)
