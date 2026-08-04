@@ -22,40 +22,39 @@
 ```
 coderSquare/
 ├── server/                    # Backend API (Bun + Express + TypeScript)
-│   ├── src/
-│   │   ├── server.ts          # Express app entry point
-│   │   ├── middleware/
-│   │   │   ├── authMiddleware.ts      # JWT authentication
-│   │   │   ├── loggerMiddleware.ts    # Request logging (Pino)
-│   │   │   └── errormiddleware.ts     # Error handling
-│   │   ├── handlers/
-│   │   │   ├── AuthHandles.ts         # Auth: register, login, me
-│   │   │   └── postHandlers.ts        # Posts: CRUD, likes, comments
-│   │   ├── datastore/
-│   │   │   ├── dao/                   # Data Access Objects
-│   │   │   │   ├── userDao.ts
-│   │   │   │   ├── postDao.ts
-│   │   │   │   ├── commentDao.ts
-│   │   │   │   └── likeDao.ts
-│   │   │   ├── sql/                   # SQLite queries
-│   │   │   ├── memorydb/              # In-memory fallback
-│   │   │   └── index.ts               # Datastore factory
-│   │   └── shared/                    # Shared types (linked)
-│   ├── nodemon.json         # Watch config (server + shared)
+│   ├── datastore/             # Data layer
+│   │   ├── dao/               # Data Access Objects
+│   │   │   ├── userDao.ts
+│   │   │   ├── postDao.ts
+│   │   │   ├── commentDao.ts
+│   │   │   └── likeDao.ts
+│   │   ├── sql/               # SQLite queries
+│   │   ├── memorydb/          # In-memory fallback
+│   │   └── index.ts           # Datastore factory
+│   ├── handlers/              # Route handlers
+│   │   ├── AuthHandles.ts     # Auth: register, login, me
+│   │   └── postHandlers.ts    # Posts: CRUD, likes, comments
+│   ├── middleware/            # Express middleware
+│   │   ├── authMiddleware.ts  # JWT authentication
+│   │   ├── loggerMiddleware.ts # Request logging (Pino)
+│   │   └── errormiddleware.ts # Error handling
+│   ├── server.ts              # Express app entry point
+│   ├── auth.ts                # Auth utilities
+│   ├── nodemon.json           # Watch config (server + shared)
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── README.md
-├── shared/                  # Shared TypeScript types (git submodule / symlink)
-│   ├── index.ts             # Main exports
+├── shared/                    # Shared TypeScript types
+│   ├── index.ts               # Main exports
 │   ├── src/
-│   │   ├── errors.ts        # Custom error classes
-│   │   ├── api.ts           # API client types
-│   │   ├── endpoints.ts     # Endpoint definitions
-│   │   └── types.ts         # Shared type definitions
+│   │   ├── errors.ts          # Custom error classes
+│   │   ├── api.ts             # API client types
+│   │   ├── endpoints.ts       # Endpoint definitions
+│   │   └── types.ts           # Shared type definitions
 │   └── package.json
 ├── docs/
-│   ├── PRD.md               # Product Requirements Document
-│   └── ERD.md               # Entity Relationship Diagram
+│   ├── PRD.md                 # Product Requirements Document
+│   └── ERD.md                 # Entity Relationship Diagram
 └── README.md
 ```
 
@@ -130,22 +129,6 @@ CREATE TABLE likes (
 
 ---
 
-## 🛠 Tech Stack
-
-| Category | Technologies |
-|----------|--------------|
-| **Runtime** | Bun (primary) / Node.js 18+ |
-| **Language** | TypeScript 5+ |
-| **Framework** | Express 4.17+ |
-| **Database** | SQLite 3 (sqlite3) |
-| **Auth** | JWT (jsonwebtoken) |
-| **Logging** | Pino + pino-pretty |
-| **Validation** | Manual (Zod planned) |
-| **Testing** | Jest 29 + Supertest + ts-jest |
-| **Dev Tools** | Nodemon, TypeScript 4.8+, ts-jest |
-
----
-
 ## 🚀 Quick Start
 
 ```bash
@@ -171,25 +154,15 @@ bun install
 ### Auth
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login user |
-| GET | `/api/auth/me` | Get current user |
+| POST | `/api/v1/signup` | Register new user |
+| POST | `/api/v1/signin` | Login user |
+| GET | `/api/v1/posts` | List posts (paginated, requires auth) |
+| POST | `/api/v1/posts` | Create post (requires auth) |
 
-### Posts
+### Health Check
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/posts` | Create post |
-| GET | `/api/posts` | List posts (paginated) |
-| GET | `/api/posts/:id` | Get post by ID |
-| PUT | `/api/posts/:id` | Update post |
-| DELETE | `/api/posts/:id` | Delete post |
-
-### Interactions
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/posts/:id/like` | Like/unlike post |
-| POST | `/api/posts/:id/comments` | Add comment |
-| GET | `/api/posts/:id/comments` | Get comments |
+| GET | `/z` | Health check endpoint |
 
 ---
 
